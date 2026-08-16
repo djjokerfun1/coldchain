@@ -29,6 +29,7 @@ class TrackingEvent extends Model
         'external_event_id',
         'latitude',
         'longitude',
+        'position',
         'payload',
         'recorded_at',
     ];

@@ -38,6 +38,13 @@ are projections over its tracking events, not fields mutated directly.
 `TemperatureExcursion` is the one mutable record in ColdChain — it is opened
 as a candidate and updated as it is confirmed or resolved.
 
+`POST /api/v1/shipments/{id}/telemetry` is how a device reports position
+(and, optionally, temperature). It's idempotent — a retried ping with the
+same `external_event_id` is a no-op, not a duplicate row — and responds
+`202` immediately; updating the shipment's position, advancing its status,
+and writing the audit entry all happen in queued listeners reacting to a
+`TelemetryRecorded` event, off the request.
+
 ## API
 
 `/api/v1` is a token-authenticated REST API (Sanctum). `POST /api/v1/login`

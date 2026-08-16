@@ -9,6 +9,8 @@ use App\Domain\ColdChain\Models\TemperatureReading;
 use App\Domain\Ordering\Models\Order;
 use App\Domain\Shipping\Enums\ShipmentStatus;
 use App\Domain\Shipping\Exceptions\InvalidStatusTransition;
+use App\Domain\Shipping\ValueObjects\GeoPoint;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -25,7 +27,22 @@ class Shipment extends Model
     {
         return [
             'status' => ShipmentStatus::class,
+            'current_latitude' => 'float',
+            'current_longitude' => 'float',
+            'last_ping_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return Attribute<GeoPoint|null, GeoPoint|null>
+     */
+    protected function currentPosition(): Attribute
+    {
+        return Attribute::make(
+            get: fn (mixed $value, array $attributes): ?GeoPoint => isset($attributes['current_latitude'], $attributes['current_longitude'])
+                ? new GeoPoint((float) $attributes['current_latitude'], (float) $attributes['current_longitude'])
+                : null,
+        );
     }
 
     /**

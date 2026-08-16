@@ -7,6 +7,9 @@ namespace App\Providers;
 use App\Domain\Ordering\Models\Client;
 use App\Domain\Ordering\Models\Order;
 use App\Domain\Ordering\Models\Product;
+use App\Domain\Shipping\Events\TelemetryRecorded;
+use App\Domain\Shipping\Listeners\RecordTelemetryAuditEntry;
+use App\Domain\Shipping\Listeners\UpdateShipmentPosition;
 use App\Domain\Shipping\Models\Driver;
 use App\Domain\Shipping\Models\Shipment;
 use App\Domain\Shipping\Models\Vehicle;
@@ -17,6 +20,7 @@ use App\Policies\ProductPolicy;
 use App\Policies\ShipmentPolicy;
 use App\Policies\VehiclePolicy;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -57,5 +61,11 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Driver::class, DriverPolicy::class);
         Gate::policy(Vehicle::class, VehiclePolicy::class);
         Gate::policy(Shipment::class, ShipmentPolicy::class);
+
+        // Listeners live under Domain\Shipping instead of the conventional
+        // app/Listeners, which is the only directory Laravel auto-discovers
+        // events in — registered explicitly for the same reason as above.
+        Event::listen(TelemetryRecorded::class, UpdateShipmentPosition::class);
+        Event::listen(TelemetryRecorded::class, RecordTelemetryAuditEntry::class);
     }
 }
