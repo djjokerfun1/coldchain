@@ -23,5 +23,7 @@ Route::prefix('v1')->name('api.v1.')->group(function (): void {
         Route::apiResource('drivers', DriverController::class);
         Route::apiResource('vehicles', VehicleController::class);
         Route::apiResource('shipments', ShipmentController::class);
+        Route::post('shipments/{shipment}/telemetry', [ShipmentController::class, 'storeTelemetry'])
+            ->name('shipments.telemetry');
     });
 });

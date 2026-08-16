@@ -4,13 +4,19 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V1;
 
+use App\Domain\ColdChain\ValueObjects\Celsius;
+use App\Domain\Shipping\Actions\RecordTelemetry;
 use App\Domain\Shipping\Enums\ShipmentStatus;
+use App\Domain\Shipping\Enums\TrackingEventType;
 use App\Domain\Shipping\Models\Shipment;
+use App\Domain\Shipping\ValueObjects\GeoPoint;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreShipmentRequest;
+use App\Http\Requests\Api\V1\StoreTelemetryRequest;
 use App\Http\Requests\Api\V1\UpdateShipmentRequest;
 use App\Http\Resources\Api\V1\ShipmentResource;
+use App\Http\Resources\Api\V1\TrackingEventResource;
 use App\Http\Support\IndexQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -84,6 +90,31 @@ class ShipmentController extends Controller
         $shipment->delete();
 
         return response()->json(null, Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * Returns 202 either way: whether this call recorded a new event or
+     * absorbed a retried duplicate, the device's ping was received. That is
+     * the only thing the response needs to promise it.
+     */
+    public function storeTelemetry(StoreTelemetryRequest $request, Shipment $shipment, RecordTelemetry $recordTelemetry): JsonResponse
+    {
+        $this->authorize('recordTelemetry', $shipment);
+
+        $event = $recordTelemetry->handle(
+            shipment: $shipment,
+            externalEventId: $request->string('external_event_id')->toString(),
+            type: $request->enum('type', TrackingEventType::class) ?? TrackingEventType::GpsPing,
+            position: new GeoPoint($request->float('latitude'), $request->float('longitude')),
+            recordedAt: $request->date('recorded_at')?->toImmutable() ?? now()->toImmutable(),
+            temperature: $request->filled('temperature_celsius') ? new Celsius($request->float('temperature_celsius')) : null,
+        );
+
+        if ($event === null) {
+            return response()->json(['status' => 'duplicate'], Response::HTTP_ACCEPTED);
+        }
+
+        return TrackingEventResource::make($event)->response()->setStatusCode(Response::HTTP_ACCEPTED);
     }
 
     private function generateReference(): string
