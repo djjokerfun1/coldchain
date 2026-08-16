@@ -6,6 +6,7 @@ namespace App\Domain\Ordering\Models;
 
 use App\Domain\Ordering\Casts\AsAddress;
 use App\Domain\Ordering\Enums\OrderStatus;
+use App\Domain\Shipping\Models\Shipment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -49,5 +50,13 @@ class Order extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(OrderLine::class);
+    }
+
+    /**
+     * @return HasMany<Shipment, $this>
+     */
+    public function shipments(): HasMany
+    {
+        return $this->hasMany(Shipment::class);
     }
 }
