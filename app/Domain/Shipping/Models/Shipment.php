@@ -10,6 +10,7 @@ use App\Domain\Shipping\Exceptions\InvalidStatusTransition;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Shipment extends Model
 {
@@ -59,5 +60,13 @@ class Shipment extends Model
     public function vehicle(): BelongsTo
     {
         return $this->belongsTo(Vehicle::class);
+    }
+
+    /**
+     * @return HasMany<TrackingEvent, $this>
+     */
+    public function trackingEvents(): HasMany
+    {
+        return $this->hasMany(TrackingEvent::class);
     }
 }
