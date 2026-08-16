@@ -4,7 +4,20 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Domain\Ordering\Models\Client;
+use App\Domain\Ordering\Models\Order;
+use App\Domain\Ordering\Models\Product;
+use App\Domain\Shipping\Models\Driver;
+use App\Domain\Shipping\Models\Shipment;
+use App\Domain\Shipping\Models\Vehicle;
+use App\Policies\ClientPolicy;
+use App\Policies\DriverPolicy;
+use App\Policies\OrderPolicy;
+use App\Policies\ProductPolicy;
+use App\Policies\ShipmentPolicy;
+use App\Policies\VehiclePolicy;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 
@@ -34,5 +47,15 @@ class AppServiceProvider extends ServiceProvider
 
             return 'Database\\Factories\\'.Str::after($model, 'App\\Models\\').'Factory';
         });
+
+        // Same reason as the factory guesser above: domain models live
+        // outside App\Models, so Laravel's convention-based policy
+        // discovery never finds them. Registered explicitly instead.
+        Gate::policy(Client::class, ClientPolicy::class);
+        Gate::policy(Product::class, ProductPolicy::class);
+        Gate::policy(Order::class, OrderPolicy::class);
+        Gate::policy(Driver::class, DriverPolicy::class);
+        Gate::policy(Vehicle::class, VehiclePolicy::class);
+        Gate::policy(Shipment::class, ShipmentPolicy::class);
     }
 }

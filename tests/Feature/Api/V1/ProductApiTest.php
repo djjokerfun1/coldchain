@@ -7,13 +7,9 @@ namespace Tests\Feature\Api\V1;
 use App\Domain\Ordering\Enums\StorageClass;
 use App\Domain\Ordering\Models\OrderLine;
 use App\Domain\Ordering\Models\Product;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class ProductApiTest extends TestCase
+class ProductApiTest extends ApiTestCase
 {
-    use RefreshDatabase;
-
     public function test_it_lists_products(): void
     {
         Product::factory()->count(3)->create();

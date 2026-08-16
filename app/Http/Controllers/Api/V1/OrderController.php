@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Domain\Ordering\Enums\OrderStatus;
 use App\Domain\Ordering\Models\Order;
 use App\Domain\Ordering\ValueObjects\Address;
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\StoreOrderRequest;
 use App\Http\Requests\Api\V1\UpdateOrderRequest;
@@ -20,6 +21,11 @@ use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Order::class, 'order');
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = new IndexQuery(
@@ -28,9 +34,17 @@ class OrderController extends Controller
             defaultSort: 'created_at',
         );
 
-        $orders = $query->paginate(Order::query()->with('client'), $request);
+        $orders = Order::query()->with('client');
 
-        return OrderResource::collection($orders)->response();
+        // The policy only gates whether a client can list orders at all; it
+        // can't scope which rows come back, so that's enforced here. A
+        // client's own filter[client_id] is harmless once this is applied,
+        // since it can only narrow further within their own orders.
+        if ($request->user()?->role === UserRole::Client) {
+            $orders->where('client_id', $request->user()->client_id);
+        }
+
+        return OrderResource::collection($query->paginate($orders, $request))->response();
     }
 
     public function store(StoreOrderRequest $request): JsonResponse

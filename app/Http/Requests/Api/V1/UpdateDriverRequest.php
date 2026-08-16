@@ -4,15 +4,13 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\V1;
 
-use App\Domain\Ordering\Enums\StorageClass;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Enum;
 
-class UpdateProductRequest extends FormRequest
+class UpdateDriverRequest extends FormRequest
 {
     /**
-     * Real authorization happens via ProductController::authorizeResource(),
+     * Real authorization happens via DriverController::authorizeResource(),
      * which runs before this request is even resolved.
      */
     public function authorize(): bool
@@ -26,15 +24,14 @@ class UpdateProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sku' => [
+            'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'license_number' => [
                 'sometimes',
                 'required',
                 'string',
                 'max:50',
-                Rule::unique('products', 'sku')->ignore($this->route('product')),
+                Rule::unique('drivers', 'license_number')->ignore($this->route('driver')),
             ],
-            'name' => ['sometimes', 'required', 'string', 'max:255'],
-            'storage_class' => ['sometimes', 'required', new Enum(StorageClass::class)],
         ];
     }
 }

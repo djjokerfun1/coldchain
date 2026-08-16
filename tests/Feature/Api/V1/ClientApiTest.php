@@ -6,13 +6,10 @@ namespace Tests\Feature\Api\V1;
 
 use App\Domain\Ordering\Models\Client;
 use App\Domain\Ordering\Models\Order;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Models\User;
 
-class ClientApiTest extends TestCase
+class ClientApiTest extends ApiTestCase
 {
-    use RefreshDatabase;
-
     public function test_it_lists_clients_paginated(): void
     {
         Client::factory()->count(3)->create();
@@ -102,5 +99,36 @@ class ClientApiTest extends TestCase
 
         $this->deleteJson("/api/v1/clients/{$client->id}")->assertConflict();
         $this->assertDatabaseHas('clients', ['id' => $client->id]);
+    }
+
+    public function test_a_client_cannot_list_clients(): void
+    {
+        $this->actingAsUser(User::factory()->client());
+
+        $this->getJson('/api/v1/clients')->assertForbidden();
+    }
+
+    public function test_a_client_can_view_their_own_record(): void
+    {
+        $client = Client::factory()->create();
+        $this->actingAsUser(User::factory()->client($client));
+
+        $this->getJson("/api/v1/clients/{$client->id}")->assertOk();
+    }
+
+    public function test_a_client_cannot_view_another_clients_record(): void
+    {
+        $otherClient = Client::factory()->create();
+        $this->actingAsUser(User::factory()->client());
+
+        $this->getJson("/api/v1/clients/{$otherClient->id}")->assertForbidden();
+    }
+
+    public function test_a_client_cannot_update_a_client(): void
+    {
+        $client = Client::factory()->create();
+        $this->actingAsUser(User::factory()->client($client));
+
+        $this->patchJson("/api/v1/clients/{$client->id}", ['name' => 'New Name'])->assertForbidden();
     }
 }

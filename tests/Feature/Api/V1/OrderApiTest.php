@@ -9,13 +9,10 @@ use App\Domain\Ordering\Models\Client;
 use App\Domain\Ordering\Models\Order;
 use App\Domain\Ordering\Models\Product;
 use App\Domain\Shipping\Models\Shipment;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
+use App\Models\User;
 
-class OrderApiTest extends TestCase
+class OrderApiTest extends ApiTestCase
 {
-    use RefreshDatabase;
-
     private function validPayload(): array
     {
         $client = Client::factory()->create();
@@ -135,5 +132,45 @@ class OrderApiTest extends TestCase
         $order = Order::factory()->create();
 
         $this->deleteJson("/api/v1/orders/{$order->id}")->assertNoContent();
+    }
+
+    public function test_a_client_only_sees_their_own_orders_in_the_index(): void
+    {
+        $client = Client::factory()->create();
+        Order::factory()->count(2)->create(['client_id' => $client->id]);
+        Order::factory()->count(3)->create();
+
+        $this->actingAsUser(User::factory()->client($client));
+
+        $this->getJson('/api/v1/orders')->assertOk()->assertJsonCount(2, 'data');
+    }
+
+    public function test_a_client_cannot_escape_their_scope_via_the_client_id_filter(): void
+    {
+        $client = Client::factory()->create();
+        Order::factory()->create(['client_id' => $client->id]);
+        $otherClient = Client::factory()->create();
+        Order::factory()->create(['client_id' => $otherClient->id]);
+
+        $this->actingAsUser(User::factory()->client($client));
+
+        $response = $this->getJson("/api/v1/orders?filter[client_id]={$otherClient->id}");
+
+        $response->assertOk()->assertJsonCount(0, 'data');
+    }
+
+    public function test_a_client_cannot_view_another_clients_order(): void
+    {
+        $order = Order::factory()->create();
+        $this->actingAsUser(User::factory()->client());
+
+        $this->getJson("/api/v1/orders/{$order->id}")->assertForbidden();
+    }
+
+    public function test_a_client_cannot_create_an_order(): void
+    {
+        $this->actingAsUser(User::factory()->client());
+
+        $this->postJson('/api/v1/orders', $this->validPayload())->assertForbidden();
     }
 }

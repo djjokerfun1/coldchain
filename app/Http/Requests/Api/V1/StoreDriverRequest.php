@@ -6,10 +6,10 @@ namespace App\Http\Requests\Api\V1;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreClientRequest extends FormRequest
+class StoreDriverRequest extends FormRequest
 {
     /**
-     * Real authorization happens via ClientController::authorizeResource(),
+     * Real authorization happens via DriverController::authorizeResource(),
      * which runs before this request is even resolved.
      */
     public function authorize(): bool
@@ -24,8 +24,7 @@ class StoreClientRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:clients,email'],
-            'phone' => ['nullable', 'string', 'max:50'],
+            'license_number' => ['required', 'string', 'max:50', 'unique:drivers,license_number'],
         ];
     }
 }
