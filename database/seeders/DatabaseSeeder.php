@@ -46,7 +46,18 @@ class DatabaseSeeder extends Seeder
         $drivers = Driver::factory()->count(2)->create();
         $vehicles = $drivers->map(fn (Driver $driver) => Vehicle::factory()->create(['driver_id' => $driver->id]));
 
-        Client::factory()->count(3)->create()->each(function (Client $client) use ($products, $drivers, $vehicles): void {
+        // A mix of end states, not five identical happy paths: a demo
+        // dataset where every shipment is already delivered can't show live
+        // tracking, and `fleet:simulate` needs shipments still in flight.
+        $endStates = [
+            ShipmentStatus::Delivered,
+            ShipmentStatus::Delivered,
+            ShipmentStatus::InTransit,
+            ShipmentStatus::InTransit,
+            ShipmentStatus::PickedUp,
+        ];
+
+        Client::factory()->count(5)->create()->each(function (Client $client, int $index) use ($products, $drivers, $vehicles, $endStates): void {
             $order = Order::factory()->placed()->create(['client_id' => $client->id]);
 
             $products->random(2)->each(fn (Product $product) => OrderLine::factory()->create([
@@ -60,22 +71,27 @@ class DatabaseSeeder extends Seeder
                 'vehicle_id' => $vehicles->random()->id,
             ]);
 
-            $this->driveToDelivery($shipment);
+            $this->driveShipment($shipment, $endStates[$index]);
         });
     }
 
     /**
-     * Walk a shipment through its real lifecycle rather than setting a status
-     * directly, so the seed data exercises the same transition guard and
-     * append-only logs the application uses at runtime.
+     * Walk a shipment through its real lifecycle rather than setting a
+     * status directly, stopping at $endState, so the seed data exercises
+     * the same transition guard and append-only logs the application uses
+     * at runtime.
      */
-    private function driveToDelivery(Shipment $shipment): void
+    private function driveShipment(Shipment $shipment, ShipmentStatus $endState): void
     {
         $shipment->trackingEvents()->create([
             'type' => TrackingEventType::StatusChange,
             'recorded_at' => now(),
         ]);
         $shipment->transitionTo(ShipmentStatus::PickedUp);
+
+        if ($endState === ShipmentStatus::PickedUp) {
+            return;
+        }
 
         $shipment->transitionTo(ShipmentStatus::InTransit);
 
@@ -108,6 +124,10 @@ class DatabaseSeeder extends Seeder
                 'min_celsius' => new Celsius(2.0),
                 'max_celsius' => new Celsius(8.0),
             ]);
+        }
+
+        if ($endState === ShipmentStatus::InTransit) {
+            return;
         }
 
         $shipment->transitionTo(ShipmentStatus::Delivered);
