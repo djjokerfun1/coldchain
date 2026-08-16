@@ -6,6 +6,13 @@ services:
     volumes:
       - .:/var/www/html
     env_file: .env
+    # .env points at the published host ports so artisan/phpunit also work from
+    # the host; inside the network we talk to the service names instead.
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     depends_on:
       postgres:
         condition: service_healthy
@@ -30,7 +37,7 @@ services:
       POSTGRES_PASSWORD: "${DB_PASSWORD:-secret}"
     # non-default host ports so the stack does not fight a local postgres/redis
     ports:
-      - "${DB_HOST_PORT:-55432}:5432"
+      - "${DB_PORT:-55432}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
@@ -42,7 +49,7 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "${REDIS_HOST_PORT:-56379}:6379"
+      - "${REDIS_PORT:-56379}:6379"
     volumes:
       - redis-data:/data
     healthcheck:
