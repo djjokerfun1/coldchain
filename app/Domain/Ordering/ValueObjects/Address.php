@@ -15,13 +15,17 @@ final readonly class Address
     ) {}
 
     /**
-     * @param  array{line1: string, line2: string|null, city: string, postal_code: string, country: string}  $data
+     * line2 may be entirely absent, not just null: request payloads omit
+     * optional keys rather than sending them explicitly, unlike the shape
+     * toArray() produces for persistence.
+     *
+     * @param  array{line1: string, line2?: string|null, city: string, postal_code: string, country: string}  $data
      */
     public static function fromArray(array $data): self
     {
         return new self(
             line1: $data['line1'],
-            line2: $data['line2'],
+            line2: $data['line2'] ?? null,
             city: $data['city'],
             postalCode: $data['postal_code'],
             country: $data['country'],
