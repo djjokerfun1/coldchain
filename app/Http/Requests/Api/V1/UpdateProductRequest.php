@@ -11,6 +11,10 @@ use Illuminate\Validation\Rules\Enum;
 
 class UpdateProductRequest extends FormRequest
 {
+    /**
+     * Real authorization happens via ProductController::authorizeResource(),
+     * which runs before this request is even resolved.
+     */
     public function authorize(): bool
     {
         return true;

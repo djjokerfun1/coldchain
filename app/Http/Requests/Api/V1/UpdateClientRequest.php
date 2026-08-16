@@ -9,6 +9,10 @@ use Illuminate\Validation\Rule;
 
 class UpdateClientRequest extends FormRequest
 {
+    /**
+     * Real authorization happens via ClientController::authorizeResource(),
+     * which runs before this request is even resolved.
+     */
     public function authorize(): bool
     {
         return true;

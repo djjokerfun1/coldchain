@@ -8,6 +8,10 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateOrderRequest extends FormRequest
 {
+    /**
+     * Real authorization happens via OrderController::authorizeResource(),
+     * which runs before this request is even resolved.
+     */
     public function authorize(): bool
     {
         return true;

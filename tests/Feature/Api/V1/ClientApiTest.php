@@ -6,13 +6,9 @@ namespace Tests\Feature\Api\V1;
 
 use App\Domain\Ordering\Models\Client;
 use App\Domain\Ordering\Models\Order;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class ClientApiTest extends TestCase
+class ClientApiTest extends ApiTestCase
 {
-    use RefreshDatabase;
-
     public function test_it_lists_clients_paginated(): void
     {
         Client::factory()->count(3)->create();

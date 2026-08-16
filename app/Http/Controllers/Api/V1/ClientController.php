@@ -16,6 +16,11 @@ use Illuminate\Http\Response;
 
 class ClientController extends Controller
 {
+    public function __construct()
+    {
+        $this->authorizeResource(Client::class, 'client');
+    }
+
     public function index(Request $request): JsonResponse
     {
         $query = new IndexQuery(

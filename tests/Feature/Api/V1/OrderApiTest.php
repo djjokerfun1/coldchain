@@ -9,13 +9,9 @@ use App\Domain\Ordering\Models\Client;
 use App\Domain\Ordering\Models\Order;
 use App\Domain\Ordering\Models\Product;
 use App\Domain\Shipping\Models\Shipment;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class OrderApiTest extends TestCase
+class OrderApiTest extends ApiTestCase
 {
-    use RefreshDatabase;
-
     private function validPayload(): array
     {
         $client = Client::factory()->create();
