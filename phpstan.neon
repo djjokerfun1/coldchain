@@ -8,3 +8,7 @@ parameters:
         - routes
 
     level: 6
+
+    # Models declare casts via the casts() method (Laravel 11+ style), not the
+    # legacy $casts property, so Larastan needs to parse that method's AST.
+    parseModelCastsMethod: true
