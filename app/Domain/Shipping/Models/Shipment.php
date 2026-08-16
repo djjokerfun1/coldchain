@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shipping\Models;
 
+use App\Domain\ColdChain\Models\TemperatureReading;
 use App\Domain\Ordering\Models\Order;
 use App\Domain\Shipping\Enums\ShipmentStatus;
 use App\Domain\Shipping\Exceptions\InvalidStatusTransition;
@@ -68,5 +69,13 @@ class Shipment extends Model
     public function trackingEvents(): HasMany
     {
         return $this->hasMany(TrackingEvent::class);
+    }
+
+    /**
+     * @return HasMany<TemperatureReading, $this>
+     */
+    public function temperatureReadings(): HasMany
+    {
+        return $this->hasMany(TemperatureReading::class);
     }
 }
