@@ -38,6 +38,21 @@ are projections over its tracking events, not fields mutated directly.
 `TemperatureExcursion` is the one mutable record in ColdChain — it is opened
 as a candidate and updated as it is confirmed or resolved.
 
+## API
+
+`/api/v1` is a token-authenticated REST API (Sanctum). `POST /api/v1/login`
+exchanges credentials for a token; every other endpoint requires it as a
+Bearer token and is scoped by the caller's role:
+
+- **planner** — full access to everything.
+- **driver** — can only see shipments (and the vehicle) assigned to them.
+- **client** — can only see their own orders and the shipments on them.
+
+Policies (`app/Policies`) gate access to a single record; list endpoints
+additionally scope their query by role in the controller, since a policy
+can authorize "can this user view *this* shipment" but has no say over
+which rows a listing query returns in the first place.
+
 ## Stack
 
 - PHP 8.4, Laravel 13
