@@ -1,3 +1,5 @@
+name: coldchain
+
 services:
   app:
     build:
