@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Domain\Shipping\Models;
 
+use App\Domain\ColdChain\Models\TemperatureExcursion;
 use App\Domain\ColdChain\Models\TemperatureReading;
 use App\Domain\Ordering\Models\Order;
 use App\Domain\Shipping\Enums\ShipmentStatus;
@@ -77,5 +78,13 @@ class Shipment extends Model
     public function temperatureReadings(): HasMany
     {
         return $this->hasMany(TemperatureReading::class);
+    }
+
+    /**
+     * @return HasMany<TemperatureExcursion, $this>
+     */
+    public function temperatureExcursions(): HasMany
+    {
+        return $this->hasMany(TemperatureExcursion::class);
     }
 }
