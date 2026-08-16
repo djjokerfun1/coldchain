@@ -11,6 +11,33 @@ the domain rules and the integration boundaries rather than the CRUD around them
 Work in progress. See `docs/decisions/` for the reasoning behind the structural
 choices.
 
+## Domain
+
+Code is organised by bounded context under `app/Domain`, not by technical layer:
+`Ordering`, `Shipping`, `ColdChain`, `Auditing`. Each has its own models, enums
+and value objects; a shipment's status, for instance, is a `ShipmentStatus` enum
+that guards its own transitions rather than a string anyone can set.
+
+```mermaid
+erDiagram
+    Client ||--o{ Order : places
+    Order ||--o{ OrderLine : contains
+    Product ||--o{ OrderLine : "ordered as"
+    Order ||--o{ Shipment : fulfilled_by
+    Driver ||--o{ Vehicle : drives
+    Driver ||--o{ Shipment : assigned_to
+    Vehicle ||--o{ Shipment : assigned_to
+    Shipment ||--o{ TrackingEvent : logs
+    Shipment ||--o{ TemperatureReading : logs
+    Shipment ||--o{ TemperatureExcursion : "may open"
+```
+
+`TrackingEvent`, `TemperatureReading` and `AuditEntry` are append-only: no
+update route exists or ever will for them. A shipment's position and status
+are projections over its tracking events, not fields mutated directly.
+`TemperatureExcursion` is the one mutable record in ColdChain — it is opened
+as a candidate and updated as it is confirmed or resolved.
+
 ## Stack
 
 - PHP 8.4, Laravel 13
