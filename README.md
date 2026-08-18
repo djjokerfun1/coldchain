@@ -60,6 +60,21 @@ additionally scope their query by role in the controller, since a policy
 can authorize "can this user view *this* shipment" but has no say over
 which rows a listing query returns in the first place.
 
+## Demo: simulating a fleet
+
+```
+php artisan db:seed
+php artisan fleet:simulate --vehicles=5 --ticks=10 --packet-loss=10 --duplicate-rate=15
+```
+
+`fleet:simulate` sends real HTTP requests to the running API — the same
+`/telemetry` endpoint a real device would call — for whichever shipments are
+currently picked up or in transit, so it needs the stack to actually be up
+and reachable at `APP_URL` (run it from the host, not from inside the `app`
+container). `--packet-loss` drops a percentage of pings before they're ever
+sent; `--duplicate-rate` resends the previous ping unchanged, to make the
+idempotency handling visible rather than theoretical.
+
 ## Stack
 
 - PHP 8.4, Laravel 13
