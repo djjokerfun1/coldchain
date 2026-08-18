@@ -60,6 +60,29 @@ additionally scope their query by role in the controller, since a policy
 can authorize "can this user view *this* shipment" but has no say over
 which rows a listing query returns in the first place.
 
+## Client order webhook
+
+`POST /api/v1/webhooks/client-orders/{partner}` is how partner systems place
+orders directly, instead of going through the dashboard. It's outside
+`auth:sanctum` — a partner isn't a user — and authenticated instead by an
+`X-Signature` header: HMAC-SHA256 of the raw request body under a secret
+shared with that partner (`config/client_order_partners.php`).
+
+Two partners are configured, `acme-coldchain` and `northstar-freight`, each
+with its own payload shape (snake_case/ISO-8601/kilograms vs.
+camelCase/`dd-MM-yyyy`/pounds) and its own `ClientOrderAdapter`
+(`app/Integrations/ClientOrders/Adapters`) that normalizes it into the same
+shape before anything domain-specific happens. A partner's own product code
+is resolved to our SKU through `partner_product_mappings`; an order the
+partner has already sent (matched by `{partner, external_reference}`) is a
+no-op, not a duplicate — the same idempotency shape as device telemetry
+(ADR 0005), for the same reason: partners retry webhooks they can't confirm
+were received.
+
+Every inbound payload — including ones that fail — is kept in
+`integration_messages`, so a rejected order can be diagnosed and reprocessed
+without asking the partner to resend it.
+
 ## Demo: simulating a fleet
 
 ```
