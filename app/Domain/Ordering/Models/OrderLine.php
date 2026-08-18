@@ -13,12 +13,13 @@ class OrderLine extends Model
     /** @use HasFactory<\Database\Factories\Domain\Ordering\OrderLineFactory> */
     use HasFactory;
 
-    protected $fillable = ['order_id', 'product_id', 'quantity'];
+    protected $fillable = ['order_id', 'product_id', 'quantity', 'weight_kg'];
 
     protected function casts(): array
     {
         return [
             'quantity' => 'integer',
+            'weight_kg' => 'float',
         ];
     }
 

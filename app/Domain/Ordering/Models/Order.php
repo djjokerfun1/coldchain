@@ -19,6 +19,8 @@ class Order extends Model
 
     protected $fillable = [
         'client_id',
+        'source_partner_key',
+        'external_reference',
         'reference',
         'status',
         'pickup_address',
