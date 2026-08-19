@@ -40,13 +40,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Domain models live under App\Domain\<Context>\Models instead of
-        // App\Models, so Laravel's default App\Models -> Database\Factories
-        // guess misses them. Everything else (e.g. App\Models\User) still
-        // needs the default convention, so fall back to it explicitly.
+        // Domain and integration models live under App\Domain\<Context>\Models
+        // or App\Integrations\<Context>\Models instead of App\Models, so
+        // Laravel's default App\Models -> Database\Factories guess misses
+        // them. Everything else (e.g. App\Models\User) still needs the
+        // default convention, so fall back to it explicitly.
         Factory::guessFactoryNamesUsing(function (string $model): string {
-            if (preg_match('/^App\\\\Domain\\\\(.+)\\\\Models\\\\(.+)$/', $model, $matches) === 1) {
-                return "Database\\Factories\\Domain\\{$matches[1]}\\{$matches[2]}Factory";
+            if (preg_match('/^App\\\\(Domain|Integrations)\\\\(.+)\\\\Models\\\\(.+)$/', $model, $matches) === 1) {
+                return "Database\\Factories\\{$matches[1]}\\{$matches[2]}\\{$matches[3]}Factory";
             }
 
             return 'Database\\Factories\\'.Str::after($model, 'App\\Models\\').'Factory';

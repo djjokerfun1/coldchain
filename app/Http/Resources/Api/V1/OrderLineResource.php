@@ -22,6 +22,7 @@ class OrderLineResource extends JsonResource
             'id' => $this->id,
             'product' => new ProductResource($this->whenLoaded('product')),
             'quantity' => $this->quantity,
+            'weight_kg' => $this->weight_kg,
         ];
     }
 }
